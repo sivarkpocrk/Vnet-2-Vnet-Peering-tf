@@ -19,12 +19,12 @@ resource "azurerm_network_interface" "nic" {
 }
 
 resource "azurerm_linux_virtual_machine" "vm" {
-  name                = "${var.env_prefix}-${var.vm_name}"
-  resource_group_name = var.resource_group_name
-  location            = var.location
-  size                = var.vm_size
-  admin_username      = var.admin_username
-  admin_password      = var.admin_password
+  name                            = "${var.env_prefix}-${var.vm_name}"
+  resource_group_name             = var.resource_group_name
+  location                        = var.location
+  size                            = var.vm_size
+  admin_username                  = var.admin_username
+  admin_password                  = var.admin_password
   disable_password_authentication = false
 
   network_interface_ids = [
@@ -43,17 +43,13 @@ resource "azurerm_linux_virtual_machine" "vm" {
     version   = "latest"
   }
 
-  dynamic "custom_data" {
-    for_each = var.install_apache ? [1] : []
-    content {
-      content = base64encode(<<EOF
+  # ✅ Correct conditional usage for cloud-init
+  custom_data = var.install_apache ? base64encode(<<EOF
 #!/bin/bash
 sudo apt-get update
 sudo apt-get install -y apache2
 sudo systemctl enable apache2
 sudo systemctl start apache2
 EOF
-      )
-    }
-  }
+  ) : null
 }
